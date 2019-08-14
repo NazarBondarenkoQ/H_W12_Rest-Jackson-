@@ -1,6 +1,7 @@
 package edu.cursor.restandjackson.services;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import edu.cursor.restandjackson.models.User;
 import lombok.Data;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -10,16 +11,25 @@ import java.io.IOException;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 
 @Data
 @Service
 public class UserService implements IUserService {
     private static final String FILE_PATH = "target/info.json";
-    private User user1 = new User("Andy", "Larkin", LocalDate.of(2019, 11, 25),
-            12345, "example@gmail.com");
-    private User user2 = new User("Rick", "Sanches", LocalDate.of(2019, 10, 22),
-            10123, "testemail@gmail.com,");
+    private User user1 = User.builder().name("Andy")
+            .surname("Larkin")
+            .lastLoginDate(LocalDate.of(2019, 11, 25))
+            .accessId(12345)
+            .email("example@gmail.com")
+            .build();
+
+    private User user2 = User.builder().name("Rick")
+            .surname("Sanchez")
+            .lastLoginDate(LocalDate.of(2019, 10, 22))
+            .accessId(10123)
+            .email("testemail@gmail.com")
+            .build();
+
     private ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
@@ -44,30 +54,13 @@ public class UserService implements IUserService {
     }
 
     @Override
-    public HttpStatus writeUserInfo(String name, String surname, String email) {
-        if (name.equals(user1.getName()) &&
-                surname.equals(user1.getSurname()) &&
-                email.equals(user1.getEmail())) {
-            user1.setAccessId(new Random().nextInt(1000) + 1);
-            try {
-                objectMapper.writeValue(new FileOutputStream(FILE_PATH), user1);
-                return HttpStatus.OK;
-            } catch (NotFoundException | IOException ex) {
-                ex.printStackTrace();
-            }
-        } else if (name.equals(user2.getName()) &&
-                surname.equals(user2.getSurname()) &&
-                email.equals(user2.getEmail())) {
-            user2.setAccessId(new Random().nextInt(1000) + 1);
-            try {
-                objectMapper.writeValue(new FileOutputStream(FILE_PATH), user2);
-                return HttpStatus.OK;
-            } catch (NotFoundException | IOException ex) {
-                ex.printStackTrace();
-            }
-        } else {
-            throw new NotFoundException();
+    public HttpStatus writeUserInfo(User user) {
+        user = user2;
+        try {
+            objectMapper.writerWithDefaultPrettyPrinter().writeValue(new FileOutputStream(FILE_PATH), user);
+            return HttpStatus.CREATED;
+        } catch (IOException e) {
+            return HttpStatus.BAD_REQUEST;
         }
-        return HttpStatus.NOT_FOUND;
     }
 }
